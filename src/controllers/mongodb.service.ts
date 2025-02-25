@@ -1,4 +1,4 @@
-// src/controllers/mongodb.service.ts
+// users/src/controllers/mongodb.service.ts
 import { MongoClient, Db } from 'mongodb';
 
 export class DatabaseService {
@@ -27,12 +27,12 @@ export class DatabaseService {
     }
 
     // Otherwise, create a new connection
-    const url = 'mongodb://localhost:27017'; // Local MongoDB URL
-    const dbName = 'busterBrackets';         // Database name
-
+    const url = process.env.MONGO_URI || "mongodb://localhost:27017/busterBrackets";
     const client = new MongoClient(url);
     await client.connect();
-    this.db = client.db(dbName);
+
+    // When the DB name is in the URI, you can do:
+    this.db = client.db(); // it automatically selects 'busterBrackets'
     console.log('Connected successfully to MongoDB (singleton).');
 
     return this.db;

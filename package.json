@@ -8,7 +8,8 @@
     "build": "tsc",
     "test": "jest",
     "dev": "nodemon --exec ts-node src/app.ts",
-    "seed": "ts-node src/scripts/seedUsers.ts"
+    "seed": "npm run build && node dist/scripts/seedUsers.js",
+    "docker-seed": "docker compose run --rm users npm run seed"
   },
   "keywords": [
     "node",

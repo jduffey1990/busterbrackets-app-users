@@ -10,7 +10,7 @@ import { Db, ObjectId } from 'mongodb';
 import { UserService } from './userService';
 
 dotenv.config();
-const jwtSecret = process.env.JWT_SECRET || "lrWtgHv/dCyYY6gr5oaTAkdBVDBDHSC4w4E5Vi5/sgY="
+const jwtSecret = process.env.JWT_SECRET || ""
 
 export class AuthService {
   public static async validateUser(

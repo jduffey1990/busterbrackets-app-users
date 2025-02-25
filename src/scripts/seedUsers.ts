@@ -22,7 +22,12 @@ const users: User[] = Array.from({ length: 10 }, (v, i) => ({
 
 const seedUsers = async () => {
     try {
-        const db = DatabaseService.getInstance().getDb();
+        // 1. Initialize and connect to the database
+        const dbService = DatabaseService.getInstance();
+        await dbService.connect();  // <--- make sure we connect
+
+        // 2. Now get the DB and do your insert
+        const db = dbService.getDb();
         const usersCollection = db.collection('users');
 
         // Hash passwords and update user objects

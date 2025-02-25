@@ -36,7 +36,7 @@ class DatabaseService {
                 return this.db;
             }
             // Otherwise, create a new connection
-            const url = 'mongodb://localhost:27017'; // Local MongoDB URL
+            const url = 'mongodb://mongo:27017/busterbrackets'; // Docker MongoDB URL
             const dbName = 'busterBrackets'; // Database name
             const client = new mongodb_1.MongoClient(url);
             yield client.connect();
