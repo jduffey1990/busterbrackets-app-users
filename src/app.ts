@@ -16,8 +16,15 @@ const jwtSecret = process.env.JWT_SECRET;
 const init = async () => {
   console.log('Initializing server...');
   const server = Hapi.server({
-      port: 3000,
-      host: '0.0.0.0'
+    port: 3000,
+    host: '0.0.0.0',
+    routes: {
+      cors: {
+        origin: ['http://localhost:4000'],     
+        credentials: true,                 // allow cookies / Authorization headers
+        additionalHeaders: ['X-CSRFToken', 'Content-Type', 'Authorization'] // <-- Add this globally]
+      },
+    },
   });
 
   // 1. Connect to MongoDB once

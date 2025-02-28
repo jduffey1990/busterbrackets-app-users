@@ -34,4 +34,33 @@ export class UserService {
       throw error;
     }
   }
+
+  /**
+   * Fetch a single user by ID from the "users" collection.
+   */
+  public static async createUser(userObject: User): Promise<User | null> {
+    try {
+      const db = DatabaseService.getInstance().getDb();
+      
+      // Insert the user document into the 'users' collection
+      const insertResult = await db.collection<User>('users').insertOne(userObject);
+      
+      // If successful, insertResult.insertedId will contain the new _id
+      // You could return the inserted user object with `_id`:
+      if (insertResult.acknowledged) {
+        // Optionally, fetch the full user document from the DB to return
+        const createdUser = await db
+          .collection<User>('users')
+          .findOne({ _id: insertResult.insertedId });
+          
+        return createdUser || null;
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Failed to create user:', error);
+      throw error;
+    }
+  }
+  
 }

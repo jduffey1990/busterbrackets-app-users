@@ -13,6 +13,7 @@ dotenv.config();
 const jwtSecret = process.env.JWT_SECRET || ""
 
 export class AuthService {
+
   public static async validateUser(
     request: Request,
     username: string,
@@ -40,6 +41,7 @@ export class AuthService {
 
     return { isValid: false };
   }
+  
   public static async validateToken(decoded: any, request: Request, h: ResponseToolkit) {
     console.log("validateToken 'decoded' =>", decoded.decoded.payload); 
     const { id } = decoded.decoded.payload; // Use decoded.payload.id, not decoded.id
@@ -54,4 +56,5 @@ export class AuthService {
   
     return { isValid: true, credentials: user };
   }
+
 }

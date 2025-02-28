@@ -5,5 +5,9 @@ export interface User {
     username: string;
     email: string;
     password: string;
-    name: string
+    name: string;
+    createdAt: Date;
+    updatedAt: Date;
+    status: string;
+    deletedAt?: Date | null
 }

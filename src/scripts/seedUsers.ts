@@ -3,30 +3,29 @@ import { ObjectId } from 'mongodb';
 const Bcrypt = require('bcrypt');
 
 import { DatabaseService } from '../controllers/mongodb.service';
+import { User } from '../models/user';
 
-interface User {
-    _id: ObjectId;
-    username: string;
-    email: string;
-    password: string;
-    name: string;
-}
 
+const now = new Date()
 const users: User[] = Array.from({ length: 10 }, (v, i) => ({
     _id: new ObjectId(),
-    username: `user${i+1}`,
-    email: `user${i+1}@example.com`,
+    username: `user${i + 1}`,
+    email: `user${i + 1}@example.com`,
     password: 'password123', // Default password for demonstration
-    name: `User ${i+1}`
+    name: `User ${i + 1}`,
+    status: 'active', // Add a default status
+    createdAt: new Date(), // Note: Use new Date() with parentheses
+    updatedAt: new Date(),
+    deletedAt: null
 }));
 
 const seedUsers = async () => {
+    const dbService = DatabaseService.getInstance();
     try {
         // 1. Initialize and connect to the database
-        const dbService = DatabaseService.getInstance();
-        await dbService.connect();  // <--- make sure we connect
+        await dbService.connect(); 
 
-        // 2. Now get the DB and do your insert
+        // 2. Now get the DB and do insert
         const db = dbService.getDb();
         const usersCollection = db.collection('users');
 
@@ -41,7 +40,10 @@ const seedUsers = async () => {
         console.log('Users seeded successfully');
     } catch (error) {
         console.error('Error seeding users:', error);
-    }
+    }finally {
+        // 3. Always disconnect (even if there's an error)
+        await dbService.disconnect();
+      }
 };
 
 seedUsers().catch(console.error);
