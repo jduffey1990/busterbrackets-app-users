@@ -16,7 +16,8 @@ const users: User[] = Array.from({ length: 10 }, (v, i) => ({
     status: 'active', // Add a default status
     createdAt: new Date(), // Note: Use new Date() with parentheses
     updatedAt: new Date(),
-    deletedAt: null
+    deletedAt: null,
+    credits:0
 }));
 
 const seedUsers = async () => {

@@ -10,4 +10,5 @@ export interface User {
     updatedAt: Date;
     status: string;
     deletedAt?: Date | null
+    credits: number
 }

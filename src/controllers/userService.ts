@@ -1,5 +1,5 @@
 // src/controllers/userService.ts
-import { ObjectId } from 'mongodb';
+import { ModifyResult, ObjectId } from 'mongodb';
 import { User } from '../models/user';
 import { DatabaseService } from './mongodb.service';
 
@@ -41,26 +41,154 @@ export class UserService {
   public static async createUser(userObject: User): Promise<User | null> {
     try {
       const db = DatabaseService.getInstance().getDb();
-      
-      // Insert the user document into the 'users' collection
-      const insertResult = await db.collection<User>('users').insertOne(userObject);
-      
-      // If successful, insertResult.insertedId will contain the new _id
-      // You could return the inserted user object with `_id`:
+      const usersCollection = db.collection<User>('users');
+  
+      // Check if username or email is already taken
+      const existingUser = await usersCollection.findOne({
+        $or: [
+          { username: userObject.username },
+          { email: userObject.email },
+        ],
+      });
+  
+      if (existingUser) {
+        // Error matching frontend logic
+        throw new Error('duplicate key value violates unique constraint');
+      }
+  
+      // If all is good, proceed
+      const insertResult = await usersCollection.insertOne(userObject);
+  
       if (insertResult.acknowledged) {
-        // Optionally, fetch the full user document from the DB to return
-        const createdUser = await db
-          .collection<User>('users')
-          .findOne({ _id: insertResult.insertedId });
-          
+        const createdUser = await usersCollection.findOne({
+          _id: insertResult.insertedId,
+        });
         return createdUser || null;
       }
-      
+  
       return null;
     } catch (error) {
       console.error('Failed to create user:', error);
+      throw error; // re-throw so we can catch in the route
+    }
+  }  
+
+   /**
+   * Update user by id.
+   */
+   public static async userUpdateInfo(userId: string, account: any): Promise<User | null> {
+    try {
+      const db = DatabaseService.getInstance().getDb();
+      const usersCollection = db.collection<User>('users');
+
+      // Verify that the user exists.
+      const existingUser = await usersCollection.findOne({ _id: new ObjectId(userId) });
+      if (!existingUser) {
+        throw new Error('User not found');
+      }
+
+      // Join firstName and lastName into a single name string.
+      const fullName = `${account.firstName} ${account.lastName}`;
+
+      // Build the update object
+      const update = {
+        name: fullName,
+        email: account.email,
+      };
+
+      // Update the user document.
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        { $set: update }
+      );
+
+      // Optionally, fetch and return the updated user.
+      return await usersCollection.findOne({ _id: new ObjectId(userId) });
+    } catch (error) {
+      console.error('Failed to update user:', error);
       throw error;
     }
   }
+
+  /**
+ * Update a user based on the successful Stripe PaymentIntent
+ */
+
+public static async updateUserStripe(paymentIntent: any): Promise<User | null> {
+  try {
+    const db = DatabaseService.getInstance().getDb();
+    const usersCollection = db.collection<User>('users');
+
+    if (!paymentIntent?.metadata?.userId) {
+      console.error('No userId found in paymentIntent.metadata');
+      return null;
+    }
+
+    const userId = paymentIntent.metadata.userId;
+
+    // Use $inc to increment "credits" by 1, plus $set for updatedAt
+    const updatedResult = await usersCollection.findOneAndUpdate(
+      { _id: new ObjectId(userId) },
+      {
+        $inc: { credits: 1 },
+        $set: { updatedAt: new Date() },
+      },
+      { returnDocument: 'after' } // returns the updated doc
+    );
+
+    const doc = updatedResult && 'value' in updatedResult
+        ? updatedResult.value  // (MongoDB 4.x+ style)
+        : updatedResult;       // (Older driver style)
+
+    if (!doc) {
+      console.error(`User not found or not updated for _id: ${userId}`);
+      return null;
+    }
+
+    return updatedResult;
+  } catch (error) {
+    console.error('Failed to update user with Stripe data:', error);
+    throw error;
+  }
+}
+
+  /**
+ * Update a user based on the successful Stripe PaymentIntent
+ */
+
+  public static async userCreditDecrement(userId: string): Promise<User | null> {
+    try {
+      const db = DatabaseService.getInstance().getDb();
+      const usersCollection = db.collection<User>('users');
+  
+  
+      // Use $inc to increment "credits" by 1, plus $set for updatedAt
+      const updatedResult = await usersCollection.findOneAndUpdate(
+        { _id: new ObjectId(userId) },
+        {
+          $inc: { credits: -1 },
+          $set: { updatedAt: new Date() },
+        },
+        { returnDocument: 'after' } // returns the updated doc
+      );
+  
+      const doc = updatedResult && 'value' in updatedResult
+          ? updatedResult.value  // (MongoDB 4.x+ style)
+          : updatedResult;       // (Older driver style)
+  
+      if (!doc) {
+        console.error(`User not found or not updated for _id: ${userId}`);
+        return null;
+      }
+  
+      return updatedResult;
+    } catch (error) {
+      console.error('Failed to update user with Stripe data:', error);
+      throw error;
+    }
+  }
+
+  
+
   
 }
