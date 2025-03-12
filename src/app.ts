@@ -20,7 +20,7 @@ const init = async () => {
     host: '0.0.0.0',
     routes: {
       cors: {
-        origin: ['http://localhost:4000', 'http://busterbrackets.com.s3-website.us-east-2.amazonaws.com', 'https://main.d2pmlcs4q5ckgp.amplifyapp.com/', 'https://busterbrackets.com', 'http://busterbrackets.com'],     
+        origin: ['http://localhost:4000', 'http://busterbrackets.com.s3-website.us-east-2.amazonaws.com', 'https://main.d2pmlcs4q5ckgp.amplifyapp.com', 'https://busterbrackets.com', 'http://busterbrackets.com'],     
         credentials: true,                 // allow cookies / Authorization headers
         additionalHeaders: ['X-CSRFToken', 'Content-Type', 'Authorization'] // <-- Add this globally]
       },
