@@ -47,7 +47,7 @@ export const userRoutes = [
             firstName: string;
             lastName: string;
             email: string;
-            credits: number;
+            credits: string;
           };
     
           // Call the service to update the user info.
@@ -126,29 +126,29 @@ export const userRoutes = [
           auth: false,
         },
       },
-      {
-        method: 'PATCH',
-        path: '/decrement-credits',
-        handler: async (request: Request, h: ResponseToolkit) => {
-          try {
-            // Get the user ID from the auth credentials
-            const user = request.auth.credentials as { _id: ObjectId };
-            const userId = user?._id.toString();
+      // {
+      //   method: 'PATCH',
+      //   path: '/decrement-credits',
+      //   handler: async (request: Request, h: ResponseToolkit) => {
+      //     try {
+      //       // Get the user ID from the auth credentials
+      //       const user = request.auth.credentials as { _id: ObjectId };
+      //       const userId = user?._id.toString();
       
-            // Call the service to update the user info.
-            const updatedUser = await UserService.userCreditDecrement(userId);
+      //       // Call the service to update the user info.
+      //       const updatedUser = await UserService.userCreditDecrement(userId);
             
-            // Check if updatedUser is null
-            if (!updatedUser) {
-              throw new Error('User update failed: user not found after update.');
-            }
+      //       // Check if updatedUser is null
+      //       if (!updatedUser) {
+      //         throw new Error('User update failed: user not found after update.');
+      //       }
       
-            return h.response(updatedUser).code(200);
-          } catch (error: any) {
-            return h.response({ error: error.message }).code(500);
-          }
-        }
-      },
+      //       return h.response(updatedUser).code(200);
+      //     } catch (error: any) {
+      //       return h.response({ error: error.message }).code(500);
+      //     }
+      //   }
+      // },
       {
         method: 'GET',
         path: '/create-payment-intent',
@@ -162,7 +162,7 @@ export const userRoutes = [
       
             // 2) Create PaymentIntent with user info in metadata
             const paymentIntent = await stripe.paymentIntents.create({
-              amount: 199, // e.g. 1.99 * 100
+              amount: 99, // e.g. 0.99 * 100
               currency: 'usd',
               metadata: {
                 userId,  // <= This is how you link the PaymentIntent to the user
