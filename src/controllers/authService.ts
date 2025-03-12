@@ -43,9 +43,7 @@ export class AuthService {
   }
   
   public static async validateToken(decoded: any, request: Request, h: ResponseToolkit) {
-    console.log("validateToken 'decoded' =>", decoded.decoded.payload); 
     const { id } = decoded.decoded.payload; // Use decoded.payload.id, not decoded.id
-    console.log('Decoded ID:', id);
   
     const db: Db = DatabaseService.getInstance().getDb();
     const user = await db.collection<User>('users').findOne({ _id: new ObjectId(id) });
