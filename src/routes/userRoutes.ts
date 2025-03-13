@@ -11,16 +11,16 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
 });
 
 export const userRoutes = [
-    {
-        method: 'GET',
-        path: '/users',
-        handler: (request: Request, h: ResponseToolkit) => {
-            return UserService.findAllUsers()
-        },
-        options: {
-            auth: false
-        }
-    },
+    // {
+    //     method: 'GET',
+    //     path: '/users',
+    //     handler: (request: Request, h: ResponseToolkit) => {
+    //         return UserService.findAllUsers()
+    //     },
+    //     options: {
+    //         auth: false
+    //     }
+    // },
     {
         method: 'GET',
         path: '/get-user',
@@ -215,7 +215,7 @@ export const userRoutes = [
           switch (event.type) {
             case 'payment_intent.succeeded': {
               const paymentIntent = event.data.object as Stripe.PaymentIntent;
-              // call your userService method here
+              // call userService method here
               try {
                 await UserService.updateUserStripe(paymentIntent);
               } catch (updateErr) {
@@ -223,7 +223,7 @@ export const userRoutes = [
               }
               break;
             }
-            // ... handle other event types if you want
+            // ... handle other event types maybe later
             default:
               console.log(`Unhandled event type ${event.type}`);
           }
