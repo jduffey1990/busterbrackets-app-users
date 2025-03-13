@@ -126,29 +126,29 @@ export const userRoutes = [
           auth: false,
         },
       },
-      // {
-      //   method: 'PATCH',
-      //   path: '/decrement-credits',
-      //   handler: async (request: Request, h: ResponseToolkit) => {
-      //     try {
-      //       // Get the user ID from the auth credentials
-      //       const user = request.auth.credentials as { _id: ObjectId };
-      //       const userId = user?._id.toString();
+      {
+        method: 'PATCH',
+        path: '/decrement-credits',
+        handler: async (request: Request, h: ResponseToolkit) => {
+          try {
+            // Get the user ID from the auth credentials
+            const user = request.auth.credentials as { _id: ObjectId };
+            const userId = user?._id.toString();
       
-      //       // Call the service to update the user info.
-      //       const updatedUser = await UserService.userCreditDecrement(userId);
+            // Call the service to update the user info.
+            const updatedUser = await UserService.userCreditDecrement(userId);
             
-      //       // Check if updatedUser is null
-      //       if (!updatedUser) {
-      //         throw new Error('User update failed: user not found after update.');
-      //       }
+            // Check if updatedUser is null
+            if (!updatedUser) {
+              throw new Error('User update failed: user not found after update.');
+            }
       
-      //       return h.response(updatedUser).code(200);
-      //     } catch (error: any) {
-      //       return h.response({ error: error.message }).code(500);
-      //     }
-      //   }
-      // },
+            return h.response(updatedUser).code(200);
+          } catch (error: any) {
+            return h.response({ error: error.message }).code(500);
+          }
+        }
+      },
       {
         method: 'GET',
         path: '/create-payment-intent',
