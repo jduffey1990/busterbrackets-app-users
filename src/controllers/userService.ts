@@ -130,7 +130,7 @@ public static async updateUserStripe(paymentIntent: any): Promise<User | null> {
     const updatedResult = await usersCollection.findOneAndUpdate(
       { _id: new ObjectId(userId) },
       {
-        $inc: { credits: 1 },
+        $inc: { credits: 4 },
         $set: { updatedAt: new Date() },
       },
       { returnDocument: 'after' } // returns the updated doc
@@ -156,37 +156,37 @@ public static async updateUserStripe(paymentIntent: any): Promise<User | null> {
  * Update a user based on the successful Stripe PaymentIntent
  */
 
-  // public static async userCreditDecrement(userId: string): Promise<User | null> {
-  //   try {
-  //     const db = DatabaseService.getInstance().getDb();
-  //     const usersCollection = db.collection<User>('users');
+  public static async userCreditDecrement(userId: string): Promise<User | null> {
+    try {
+      const db = DatabaseService.getInstance().getDb();
+      const usersCollection = db.collection<User>('users');
   
   
-  //     // Use $inc to increment "credits" by 1, plus $set for updatedAt
-  //     const updatedResult = await usersCollection.findOneAndUpdate(
-  //       { _id: new ObjectId(userId) },
-  //       {
-  //         $inc: { credits: -1 },
-  //         $set: { updatedAt: new Date() },
-  //       },
-  //       { returnDocument: 'after' } // returns the updated doc
-  //     );
+      // Use $inc to increment "credits" by 1, plus $set for updatedAt
+      const updatedResult = await usersCollection.findOneAndUpdate(
+        { _id: new ObjectId(userId) },
+        {
+          $inc: { credits: -1 },
+          $set: { updatedAt: new Date() },
+        },
+        { returnDocument: 'after' } // returns the updated doc
+      );
   
-  //     const doc = updatedResult && 'value' in updatedResult
-  //         ? updatedResult.value  // (MongoDB 4.x+ style)
-  //         : updatedResult;       // (Older driver style)
+      const doc = updatedResult && 'value' in updatedResult
+          ? updatedResult.value  // (MongoDB 4.x+ style)
+          : updatedResult;       // (Older driver style)
   
-  //     if (!doc) {
-  //       console.error(`User not found or not updated for _id: ${userId}`);
-  //       return null;
-  //     }
+      if (!doc) {
+        console.error(`User not found or not updated for _id: ${userId}`);
+        return null;
+      }
   
-  //     return updatedResult;
-  //   } catch (error) {
-  //     console.error('Failed to update user with Stripe data:', error);
-  //     throw error;
-  //   }
-  // }
+      return updatedResult;
+    } catch (error) {
+      console.error('Failed to update user with Stripe data:', error);
+      throw error;
+    }
+  }
 
   
 
