@@ -23,6 +23,16 @@ export const userRoutes = [
     // },
     {
         method: 'GET',
+        path: '/ping-user',
+        handler: (request: Request, h: ResponseToolkit) => {
+          return h.response("pinged backend").code(200);
+        },
+        options: {
+          auth: false,
+        },
+    },
+    {
+        method: 'GET',
         path: '/get-user',
         handler: (request: Request, h: ResponseToolkit) => {
             const id = request.query.id as string;  // Access query parameter
