@@ -13,5 +13,7 @@ export interface User {
     status: string;
     deletedAt?: Date | null;
     credits: number;
-    role: string;   // "user" | "admin" — default "user", set yours to "admin" in MongoDB
+    role: string;
+    resetToken?: string | null;
+    resetTokenExpiry?: Date | null;
 }

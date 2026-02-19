@@ -2,6 +2,8 @@
 import { ModifyResult, ObjectId } from 'mongodb';
 import { User } from '../models/user';
 import { DatabaseService } from './mongodb.service';
+import crypto from 'crypto';
+const Bcrypt = require('bcrypt');
 
 export class UserService {
   /**
@@ -31,6 +33,19 @@ export class UserService {
       return user;
     } catch (error) {
       console.error('Failed to find user:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Find a user by their email address.
+   */
+  public static async findByEmail(email: string): Promise<User | null> {
+    try {
+      const db = DatabaseService.getInstance().getDb();
+      return await db.collection<User>('users').findOne({ email: email.toLowerCase() });
+    } catch (error) {
+      console.error('Failed to find user by email:', error);
       throw error;
     }
   }
@@ -188,7 +203,119 @@ public static async updateUserStripe(paymentIntent: any): Promise<User | null> {
     }
   }
 
-  
+  /**
+   * Generate and store a reset token on the user document.
+   * Returns the raw token (to be included in the email link).
+   */
+  public static async setResetToken(userId: string): Promise<string> {
+    try {
+      const db = DatabaseService.getInstance().getDb();
+      const usersCollection = db.collection<User>('users');
+
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        {
+          $set: {
+            resetToken: token,
+            resetTokenExpiry: expiry,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      return token;
+    } catch (error) {
+      console.error('Failed to set reset token:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Validate a reset token and update the password.
+   * Clears the token after successful reset.
+   */
+  public static async resetPasswordWithToken(
+    token: string,
+    newPassword: string
+  ): Promise<boolean> {
+    try {
+      const db = DatabaseService.getInstance().getDb();
+      const usersCollection = db.collection<User>('users');
+
+      const user = await usersCollection.findOne({
+        resetToken: token,
+        resetTokenExpiry: { $gt: new Date() }, // token must not be expired
+      });
+
+      if (!user) {
+        return false; // invalid or expired token
+      }
+
+      const hashedPassword = await Bcrypt.hash(newPassword, 10);
+
+      await usersCollection.updateOne(
+        { _id: user._id },
+        {
+          $set: {
+            password: hashedPassword,
+            resetToken: null,
+            resetTokenExpiry: null,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Failed to reset password with token:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Authenticated password change — verify current password, then update.
+   */
+  public static async updatePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string
+  ): Promise<boolean> {
+    try {
+      const db = DatabaseService.getInstance().getDb();
+      const usersCollection = db.collection<User>('users');
+
+      const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      const match = await Bcrypt.compare(currentPassword, user.password);
+      if (!match) {
+        return false; // current password doesn't match
+      }
+
+      const hashedPassword = await Bcrypt.hash(newPassword, 10);
+
+      await usersCollection.updateOne(
+        { _id: new ObjectId(userId) },
+        {
+          $set: {
+            password: hashedPassword,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      return true;
+    } catch (error) {
+      console.error('Failed to update password:', error);
+      throw error;
+    }
+  }
+
 
   
 }

@@ -6,6 +6,7 @@ import Stripe from 'stripe';
 import { UserService } from '../controllers/userService';
 import { User } from '../models/user'
 import { ObjectId } from 'mongodb';
+import { sendPasswordResetEmail } from '../utils/email';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2025-02-24.acacia',
 });
@@ -192,6 +193,130 @@ export const userRoutes = [
           }
         },
       },
+
+      // ============================================================
+      // FORGOT PASSWORD — unauthenticated
+      // ============================================================
+      {
+        method: 'POST',
+        path: '/forgot-password',
+        handler: async (request: Request, h: ResponseToolkit) => {
+          try {
+            const { email } = request.payload as { email: string };
+            console.log('[forgot-password] Request received for email:', email);
+
+            if (!email) {
+              console.log('[forgot-password] No email provided');
+              return h.response({ error: 'Email is required' }).code(400);
+            }
+
+            const user = await UserService.findByEmail(email.toLowerCase());
+            console.log('[forgot-password] User lookup result:', user ? `found (id: ${user._id}, username: ${user.username})` : 'NOT FOUND');
+
+            if (!user) {
+              return h.response({ message: 'If an account with that email exists, a reset link has been sent.' }).code(200);
+            }
+
+            const token = await UserService.setResetToken(user._id.toString());
+            console.log('[forgot-password] Reset token generated:', token ? `${token.substring(0, 8)}...` : 'FAILED');
+
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4000';
+            const resetLink = `${frontendUrl}/reset-password?token=${token}`;
+            console.log('[forgot-password] Reset link:', resetLink);
+            console.log('[forgot-password] Sending email to:', user.email);
+            console.log('[forgot-password] RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
+
+            await sendPasswordResetEmail(user.email, user.username, resetLink);
+            console.log('[forgot-password] Email send completed successfully');
+
+            return h.response({ message: 'If an account with that email exists, a reset link has been sent.' }).code(200);
+          } catch (error: any) {
+            console.error('[forgot-password] ERROR:', error);
+            return h.response({ message: 'If an account with that email exists, a reset link has been sent.' }).code(200);
+          }
+        },
+        options: { auth: false },
+    },
+
+
+
+      // ============================================================
+      // RESET PASSWORD — unauthenticated, token-based
+      // ============================================================
+      {
+        method: 'POST',
+        path: '/reset-password',
+        handler: async (request: Request, h: ResponseToolkit) => {
+          try {
+            const { token, newPassword } = request.payload as {
+              token: string;
+              newPassword: string;
+            };
+
+            if (!token || !newPassword) {
+              return h.response({ error: 'Token and new password are required' }).code(400);
+            }
+
+            if (newPassword.length <= 8) {
+              return h.response({ error: 'Password must be greater than 8 characters' }).code(400);
+            }
+
+            const success = await UserService.resetPasswordWithToken(token, newPassword);
+
+            if (!success) {
+              return h.response({ error: 'Invalid or expired reset link. Please request a new one.' }).code(400);
+            }
+
+            return h.response({ message: 'Password has been reset successfully. You can now log in.' }).code(200);
+          } catch (error: any) {
+            console.error('Reset password error:', error);
+            return h.response({ error: 'Something went wrong. Please try again.' }).code(500);
+          }
+        },
+        options: {
+          auth: false,
+        },
+      },
+
+      // ============================================================
+      // CHANGE PASSWORD — authenticated
+      // ============================================================
+      {
+        method: 'PATCH',
+        path: '/change-password',
+        handler: async (request: Request, h: ResponseToolkit) => {
+          try {
+            const user = request.auth.credentials as { _id: ObjectId };
+            const userId = user?._id.toString();
+
+            const { currentPassword, newPassword } = request.payload as {
+              currentPassword: string;
+              newPassword: string;
+            };
+
+            if (!currentPassword || !newPassword) {
+              return h.response({ error: 'Current password and new password are required' }).code(400);
+            }
+
+            if (newPassword.length <= 8) {
+              return h.response({ error: 'Password must be greater than 8 characters' }).code(400);
+            }
+
+            const success = await UserService.updatePassword(userId, currentPassword, newPassword);
+
+            if (!success) {
+              return h.response({ error: 'Current password is incorrect' }).code(401);
+            }
+
+            return h.response({ message: 'Password updated successfully' }).code(200);
+          } catch (error: any) {
+            console.error('Change password error:', error);
+            return h.response({ error: error.message }).code(500);
+          }
+        },
+      },
+
+
       {
         method: 'POST',
         path: '/stripe-webhook',
