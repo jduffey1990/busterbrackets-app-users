@@ -222,9 +222,6 @@ export const userRoutes = [
 
             const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4000';
             const resetLink = `${frontendUrl}/reset-password?token=${token}`;
-            console.log('[forgot-password] Reset link:', resetLink);
-            console.log('[forgot-password] Sending email to:', user.email);
-            console.log('[forgot-password] RESEND_API_KEY present:', !!process.env.RESEND_API_KEY);
 
             await sendPasswordResetEmail(user.email, user.username, resetLink);
             console.log('[forgot-password] Email send completed successfully');

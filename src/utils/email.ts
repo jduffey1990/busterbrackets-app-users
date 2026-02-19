@@ -14,10 +14,6 @@ export async function sendPasswordResetEmail(
   username: string,
   resetLink: string
 ): Promise<void> {
-    console.log('[email] Attempting to send password reset email');
-    console.log('[email] To:', to);
-    console.log('[email] From:', FROM_ADDRESS);
-    console.log('[email] API key starts with:', process.env.RESEND_API_KEY?.substring(0, 8));
     try {
     const result = await resend.emails.send({
       from: FROM_ADDRESS,
@@ -42,9 +38,6 @@ export async function sendPasswordResetEmail(
         </div>
       `,
     });
-
-    console.log('[email] Resend response data:', JSON.stringify(result.data));
-    console.log('[email] Resend response error:', JSON.stringify(result.error));
   } catch (error) {
     console.error('Failed to send password reset email:', error);
     throw error;
