@@ -107,7 +107,8 @@ export const userRoutes = [
               updatedAt: now,
               deletedAt: null,
               status: 'active',
-              credits: 0
+              credits: 0,
+              role: 'user'
             };
       
             const newUser = await UserService.createUser(user);

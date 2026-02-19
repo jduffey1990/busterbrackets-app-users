@@ -17,7 +17,8 @@ const users: User[] = Array.from({ length: 10 }, (v, i) => ({
     createdAt: new Date(), // Note: Use new Date() with parentheses
     updatedAt: new Date(),
     deletedAt: null,
-    credits: `user${i + 1}` === "user1" ? 1 : 0
+    credits: `user${i + 1}` === "user1" ? 1 : 0,
+    role: 'user'
 }));
 
 const seedUsers = async () => {

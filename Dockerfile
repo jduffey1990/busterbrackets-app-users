@@ -1,4 +1,4 @@
-# Simple single-stage Dockerfile
+# Simple single-stage Dockerfile for users
 FROM node:18-alpine
 
 WORKDIR /app
