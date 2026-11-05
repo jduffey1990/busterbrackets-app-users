@@ -6,6 +6,8 @@
 process.env.JWT_SECRET = 'test-jwt-secret';
 process.env.STRIPE_SECRET_KEY = 'sk_test_dummy';
 process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test_secret';
+// CodeBuild has no .env; email.ts constructs Resend at import and throws without a key.
+process.env.RESEND_API_KEY = 're_test_dummy';
 
 const connect = jest.fn().mockResolvedValue({});
 jest.mock('./controllers/mongodb.service', () => ({
