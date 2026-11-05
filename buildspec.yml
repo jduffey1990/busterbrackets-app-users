@@ -1,0 +1,37 @@
+version: 0.2
+
+# CodeBuild deploy for bb-users. Runs on Amazon Linux 2023 (see
+# terraform/main.tf), the same OS as the nodejs22.x Lambda runtime, so the
+# native bcrypt binary installed here is the one Lambda can load.
+# LAMBDA_FUNCTION_NAME comes from the CodeBuild project; AWS_DEFAULT_REGION is
+# set by CodeBuild.
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 22
+    commands:
+      - npm ci
+
+  pre_build:
+    commands:
+      # A red test stops the deploy before Lambda is touched.
+      - npm test -- --ci
+
+  build:
+    commands:
+      - npm run build
+      - npm ci --omit=dev
+      - zip -qr deployment.zip dist/ node_modules/ package.json -x 'dist/**/*.test.js'
+
+  post_build:
+    commands:
+      # post_build runs even after a failed build; deploy only on success.
+      - |
+        if [ "$CODEBUILD_BUILD_SUCCEEDING" != "1" ]; then
+          echo "Build failed, skipping deploy"
+          exit 1
+        fi
+      - aws lambda update-function-code --function-name "$LAMBDA_FUNCTION_NAME" --zip-file fileb://deployment.zip --region "$AWS_DEFAULT_REGION" > /dev/null
+      - aws lambda wait function-updated-v2 --function-name "$LAMBDA_FUNCTION_NAME" --region "$AWS_DEFAULT_REGION"
+      - echo "Deployed $LAMBDA_FUNCTION_NAME"
