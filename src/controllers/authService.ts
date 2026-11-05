@@ -46,7 +46,11 @@ export class AuthService {
     const { id } = decoded.decoded.payload; // Use decoded.payload.id, not decoded.id
   
     const db: Db = DatabaseService.getInstance().getDb();
-    const user = await db.collection<User>('users').findOne({ _id: new ObjectId(id) });
+    // Exclude the bcrypt hash: these credentials become request.auth.credentials
+    // on every authenticated route, and GET /session returns them to the browser.
+    const user = await db
+      .collection<User>('users')
+      .findOne<Omit<User, 'password'>>({ _id: new ObjectId(id) }, { projection: { password: 0 } });
   
     if (!user) {
       return { isValid: false };
