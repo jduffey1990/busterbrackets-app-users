@@ -1,0 +1,10 @@
+# Copy to terraform.tfvars (gitignored) and fill in. Never commit real values.
+
+codestar_connection_arn = "arn:aws:codeconnections:us-east-2:<account-id>:connection/<id>" # duffey-connect
+alert_email             = "you@example.com"
+
+mongo_uri             = "mongodb+srv://<user>:<password>@<cluster>/busterBrackets"
+jwt_secret            = "" # same value as the brackets service
+stripe_secret_key     = "sk_live_..."
+stripe_webhook_secret = "whsec_..." # from the NEW Stripe endpoint that targets users-api.busterbrackets.com
+resend_api_key        = "re_..."
