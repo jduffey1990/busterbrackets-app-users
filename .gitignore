@@ -7,3 +7,4 @@ terraform.tfvars
 .terraform/
 deployment.zip
 .lambda-out/
+node_modules/
