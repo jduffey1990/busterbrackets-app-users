@@ -79,7 +79,15 @@ The phase gate record is in `brackets/docs/PLAN.md` under "Lambda migration".
 
 Apply and deploy follow the runbook below.
 
-### Phase 4 - cutover
+### Phase 4 - cutover (in progress)
+
+Status on 2026-11-05:
+
+- Done: Atlas allows `0.0.0.0/0`; the second Stripe endpoint exists and `stripe_webhook_secret` holds its secret; both custom domains answer; Amplify points at the new hostnames and the live bundle has no `onrender.com`; both pipelines deploy from `main` (`Succeeded` 10:20 and 10:31 MT).
+- Also shipped: `MongoClient` fails server selection in 5s, under both Lambda timeouts (`fix/mongo-connect-timeout` in both repos).
+- Unverified: the Stripe test webhook result; a signed-in pass on the live site (bracket list, builder, odds, breakdown); a real purchase through the new endpoint.
+
+**Resume here:** step 5 below, then step 6 after a few quiet days.
 
 1. Confirm Atlas Network Access allows `0.0.0.0/0`; Lambda has no fixed egress IP without a NAT gateway (~$32/mo).
 2. In Stripe, add a second webhook endpoint at `terraform output stripe_webhook_url`, keeping the Render one, and put its signing secret in `stripe_webhook_secret`.
